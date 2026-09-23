@@ -1,6 +1,7 @@
 .dagster_home
 .dg
 .idea
+data/mart_order_features.parquet
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

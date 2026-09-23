@@ -4,6 +4,9 @@ requires-python = ">=3.10,<3.15"
 version = "0.1.0"
 dependencies = [
     "dagster==1.13.23",
+    "pandas>=2.3.3",
+    "pyarrow>=25.0.1",
+    "scikit-learn>=1.7.2",
 ]
 
 [dependency-groups]
