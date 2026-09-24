@@ -4,8 +4,11 @@ requires-python = ">=3.10,<3.15"
 version = "0.1.0"
 dependencies = [
     "dagster==1.13.23",
+    "dagster-dbt>=0.29.23",
+    "dbt-duckdb>=1.11.0",
     "pandas>=2.3.3",
     "pyarrow>=25.0.1",
+    "python-dotenv>=1.2.3",
     "scikit-learn>=1.7.2",
 ]
 

@@ -1,0 +1,23 @@
+type: dagster_dbt.DbtProjectComponent
+
+##
+#attributes:
+#  project: '{{ context.project_root }}/dbt'
+
+attributes:
+  project:
+    project_dir: "{{ context.project_root }}/dbt"
+    profiles_dir: "{{ context.project_root }}/dbt"
+    #    target_path: "{{ context.project_root }}/dbt/target"
+    target_path: target
+  cli_args: [build]
+  translation:
+    # source и seed с одинаковым именем (orders, …) дали бы дубль ключа — источникам префикс source_name.
+    key: "{{ node.source_name ~ '/' ~ node.name if node.resource_type == 'source' else node.name }}"
+    # Модели пакета dbt_project_evaluator (проверки самого dbt-проекта, ~50 узлов) — отдельной
+    # группой, чтобы не смешивались с витринами; дальше — sources, seeds, папка в models/.
+    group_name: "{{ 'dbt_project_evaluator' if node.package_name == 'dbt_project_evaluator' else ('sources' if node.resource_type == 'source' else ('seeds' if node.resource_type == 'seed' else (node.fqn[1] if node.fqn | length > 2 else 'dbt'))) }}"
+    description: "{{ node.description or 'dbt-модель ' ~ node.name }}"
+  translation_settings:
+    enable_code_references: false
+  prepare_if_dev: true

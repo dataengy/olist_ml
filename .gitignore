@@ -1,4 +1,3 @@
-.tmp_dagster_home_*
 .dagster_home
 .dg
 .idea
@@ -207,3 +206,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# DuckDB и прочие локальные данные (DUCKDB_PATH=data/olist.duckdb)
+/data/

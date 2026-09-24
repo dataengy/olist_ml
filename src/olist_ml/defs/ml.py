@@ -1,34 +1,25 @@
 """Демо 1, шаг 5 — v2 + asset checks: утечка на training_dataset, quality gate на model_evaluation."""
 
-import os
-from pathlib import Path
-
 import dagster as dg
+import duckdb
 import pandas as pd
 
 from olist_ml import features as F
+from olist_ml.defs.env import DUCKDB_PATH
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-MART_PATH = Path(
-    os.getenv(
-        "MART_PATH", PROJECT_ROOT / "data" / "mart_order_features.parquet"
-    )
+# Та же БД, куда пишет dbt (dbt/profiles.yml, таргет duck); путь — из .env (defs/env.py).
+MART_TABLE = "marts.mart_order_features"
+
+
+@dg.asset(
+    group_name="ml",
+    kinds={"pandas"},
+    deps=[dg.AssetKey("mart_order_features")],  # dbt-модель marts/mart_order_features
 )
-
-
-@dg.asset(group_name="ml", kinds={"parquet"})
-def mart_order_features() -> dg.Output[pd.DataFrame]:
-    """Витрина признаков (пока — готовый parquet от DE-команды)."""
-    df = pd.read_parquet(MART_PATH)
-    return dg.Output(
-        df,
-        metadata={"rows": len(df), "path": str(MART_PATH)},
-    )
-
-
-@dg.asset(group_name="ml", kinds={"pandas"})
-def training_dataset(mart_order_features: pd.DataFrame) -> dg.Output[dict]:
+def training_dataset() -> dg.Output[dict]:
     """Строки с известным target, детерминированный сплит train/holdout по md5(order_id)."""
+    with duckdb.connect(str(DUCKDB_PATH), read_only=True) as con:
+        mart_order_features = con.sql(f"select * from {MART_TABLE}").df()
     df = mart_order_features[mart_order_features[F.TARGET].notna()]
     train, holdout = F.split_by_hash(df, test_frac=0.2, seed=42)
     return dg.Output(
