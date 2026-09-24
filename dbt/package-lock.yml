@@ -8,7 +8,4 @@ packages:
   - name: dbt_expectations
     package: calogica/dbt_expectations
     version: 0.10.4
-  - name: dbt_project_evaluator
-    package: dbt-labs/dbt_project_evaluator
-    version: 0.14.3
-sha1_hash: 9ba2d46fac3a09d11a0aef1266eabdc711463a43
+sha1_hash: e855f038baf20e94c03bbb29d1255086dc6af1c0
