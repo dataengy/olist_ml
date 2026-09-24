@@ -29,7 +29,7 @@
 #}
 
 with source as (
-    select * from {{ source('olist_raw', 'geolocation') }}
+    select * from {{ raw_table('geolocation') }}
 ),
 
 within_brazil as (

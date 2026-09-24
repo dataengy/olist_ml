@@ -15,7 +15,7 @@
 #}
 
 with source as (
-    select * from {{ source('olist_raw', 'order_reviews') }}
+    select * from {{ raw_table('order_reviews') }}
 ),
 
 deduplicated as (

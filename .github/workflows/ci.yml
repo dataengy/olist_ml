@@ -1,0 +1,102 @@
+# CI: lint · dbt · test · e2e. Те же команды, что локально (pre-commit / scripts/dbt.sh /
+# pytest), версии инструментов — из uv.lock.
+#
+# Секретов нет: переменные — из закоммиченных шаблонов (.env.template → .env),
+# данные — CSV-сиды из git-lfs, хранилище — DuckDB во временных каталогах.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UV_LINK_MODE: copy
+  DBT_SEND_ANONYMOUS_USAGE_STATS: "false"
+  DAGSTER_DISABLE_TELEMETRY: "true"
+
+jobs:
+  lint:
+    name: lint · ruff · black · ty
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v10.1.0
+        with:
+          python-version: "3.13"
+          enable-cache: true
+      - run: uv sync --locked
+      - name: pre-commit (hygiene, ruff, black, ty)
+        run: uv run pre-commit run --all-files --show-diff-on-failure
+
+  dbt:
+    name: dbt · deps · parse · build (DuckDB)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true # CSV-сиды — в git-lfs
+      - uses: astral-sh/setup-uv@v10.1.0
+        with:
+          python-version: "3.13"
+          enable-cache: true
+      - run: uv sync --locked
+      - name: .env из шаблонов
+        run: cp .env.template .env && cp dbt/.env.template dbt/.env
+      - run: scripts/dbt.sh deps
+      - run: scripts/dbt.sh parse
+      # seed → run → test всего проекта, включая python-модель.
+      - run: scripts/dbt.sh build
+
+  test:
+    name: test · dagster (py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: astral-sh/setup-uv@v10.1.0
+        with:
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+      - run: uv sync --locked
+      - name: .env из шаблонов
+        run: cp .env.template .env && cp dbt/.env.template dbt/.env
+      - run: scripts/dbt.sh deps
+      # manifest dbt-компонента (defs state): вне `dg dev` его готовят явно.
+      - run: uv run dg utils refresh-defs-state
+      - run: uv run dg check defs
+      - name: pytest (smoke + unit + integration)
+        run: uv run pytest -m "smoke or unit or integration" -v
+
+  e2e:
+    name: e2e · dagster dev + GraphQL
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: astral-sh/setup-uv@v10.1.0
+        with:
+          python-version: "3.13"
+          enable-cache: true
+      - run: uv sync --locked
+      - name: .env из шаблонов
+        run: cp .env.template .env && cp dbt/.env.template dbt/.env
+      - run: scripts/dbt.sh deps
+      - run: uv run dg utils refresh-defs-state
+      - name: pytest -m e2e
+        run: uv run pytest -m e2e -o addopts="" --timeout=1200 -v

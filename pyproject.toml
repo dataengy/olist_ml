@@ -14,8 +14,16 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "black>=26.5.1",
     "dagster-dg-cli",
+    "dagster-graphql>=1.13.23",
     "dagster-webserver",
+    "pre-commit>=4.6.2",
+    "pytest>=9.1.1",
+    "pytest-timeout>=2.4.0",
+    "requests>=2.34.2",
+    "ruff>=0.16.8",
+    "ty>=0.0.83",
 ]
 
 [build-system]
@@ -35,3 +43,44 @@ registry_modules = [
 ]
 
 
+
+# --- Качество кода: ruff (линтер + сортировка импортов), black (формат), ty (типы), pytest --------
+
+[tool.black]
+# Вертикальный код: короткие строки; «магическая» висячая запятая (не отключаем
+# skip-magic-trailing-comma) заставляет black держать каждый аргумент на своей строке.
+line-length = 77
+target-version = ["py310"]
+extend-exclude = "/(dbt/dbt_packages|dbt/target|\\.archive|\\.claude)/"
+
+[tool.ruff]
+line-length = 77
+target-version = "py310"
+extend-exclude = ["dbt/dbt_packages", "dbt/target", ".archive", ".claude"]
+
+[tool.ruff.lint]
+# E/W — pycodestyle (E501: строки ≤ 77, включая комментарии), F — pyflakes, I — isort,
+# B — bugbear, UP — pyupgrade, SIM — упрощения, COM — висячие запятые: COM812 (--fix)
+# добавляет запятую после последнего аргумента многострочного вызова/сигнатуры, и
+# black после этого раскладывает аргументы по одному на строку.
+select = ["E", "W", "F", "I", "B", "UP", "SIM", "COM"]
+# B008 — вызовы в аргументах по умолчанию нужны Dagster.
+ignore = ["B008"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["olist_ml"]
+
+[tool.ty.src]
+include = ["src", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# e2e (dg dev + GraphQL) — только явно: `pytest -m e2e`.
+addopts = "-q -m 'not e2e' --strict-markers --timeout=900"
+markers = [
+    "smoke: определения грузятся (dg check defs / dg list defs) — секунды",
+    "unit: чистая логика без DuckDB, dbt и инстанса Dagster",
+    "integration: материализация dbt + ML во временную DuckDB и DAGSTER_HOME",
+    "e2e: dg dev в подпроцессе, запуск по GraphQL — только по явному запросу",
+]
+filterwarnings = ["ignore::DeprecationWarning", "ignore::PendingDeprecationWarning"]
