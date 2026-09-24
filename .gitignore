@@ -1,3 +1,5 @@
+*.bak*
+package-lock.concurrent-update-lock
 .dagster_home
 .dg
 .idea
