@@ -1,19 +1,13 @@
 """Демо 1, шаг 5 — v2 + asset checks: утечка на training_dataset, quality gate на model_evaluation."""
 
-import os
-from pathlib import Path
-
 import dagster as dg
 import duckdb
 import pandas as pd
 
 from olist_ml import features as F
+from olist_ml.defs.env import DUCKDB_PATH
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-# Та же БД, куда пишет dbt (dbt/profiles.yml, таргет duck); витрина — marts.mart_order_features.
-DUCKDB_PATH = Path(
-    os.getenv("DUCKDB_PATH", PROJECT_ROOT / "data" / "olist.duckdb")
-)
+# Та же БД, куда пишет dbt (dbt/profiles.yml, таргет duck); путь — из .env (defs/env.py).
 MART_TABLE = "marts.mart_order_features"
 
 
