@@ -1,28 +1,3 @@
-state_code,state_name,region
-AC,Acre,Norte
-AL,Alagoas,Nordeste
-AP,Amapa,Norte
-AM,Amazonas,Norte
-BA,Bahia,Nordeste
-CE,Ceara,Nordeste
-DF,Distrito Federal,Centro-Oeste
-ES,Espirito Santo,Sudeste
-GO,Goias,Centro-Oeste
-MA,Maranhao,Nordeste
-MT,Mato Grosso,Centro-Oeste
-MS,Mato Grosso do Sul,Centro-Oeste
-MG,Minas Gerais,Sudeste
-PA,Para,Norte
-PB,Paraiba,Nordeste
-PR,Parana,Sul
-PE,Pernambuco,Nordeste
-PI,Piaui,Nordeste
-RJ,Rio de Janeiro,Sudeste
-RN,Rio Grande do Norte,Nordeste
-RS,Rio Grande do Sul,Sul
-RO,Rondonia,Norte
-RR,Roraima,Norte
-SC,Santa Catarina,Sul
-SP,Sao Paulo,Sudeste
-SE,Sergipe,Nordeste
-TO,Tocantins,Norte
+version https://git-lfs.github.com/spec/v1
+oid sha256:e857b8b22bb5fa4b9511ca2d6cf526c3614f6f46c479303344dbcc3a1a1a181a
+size 610
