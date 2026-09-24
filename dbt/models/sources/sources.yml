@@ -11,8 +11,8 @@ sources:
       Сырые таблицы датасета Olist Brazilian E-Commerce, как они приехали из CSV.
       Ничего не почищено намеренно: дубли отзывов, пустые даты доставки и
       разбухшая geolocation разбираются в слое staging.
-    database: "{{ 'olist' if target.type == 'duckdb' else env_var('CH_RAW_DB', 'olist_raw') }}"
-    schema: "{{ 'raw' if target.type == 'duckdb' else env_var('CH_RAW_DB', 'olist_raw') }}"
+    database: "{{ 'olist' if target.type == 'duckdb' else env_var('CH_RAW_DB') }}"
+    schema: "{{ 'raw' if target.type == 'duckdb' else env_var('CH_RAW_DB') }}"
 
     tables:
       - name: orders

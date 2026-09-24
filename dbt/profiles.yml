@@ -1,14 +1,25 @@
-# Отличие от канона (ADR-04): только таргет duck. ClickHouse-таргет `ch` — в каноническом проекте.
+# Отличие от канона (ADR-04): активный таргет — duck; `ch` (ClickHouse) описан, но пока не используется (DBT_TARGET=duck).
 # Закоммичен намеренно: его читают CI и DbtCliResource; секретов нет.
 #
-# DUCKDB_PATH задаётся абсолютным (Justfile `export`, src/olist_ml/defs/env.py): dbt резолвит
-# относительный path от cwd (= dbt/), а .env хранит путь относительно корня проекта.
+# Все значения — только из .env (./.env: DUCKDB_PATH; dbt/.env: DBT_TARGET, CH_RAW_DB), дефолтов нет.
+# Под Dagster их грузит src/olist_ml/defs/env.py (DUCKDB_PATH → абсолютный); для голого dbt CLI —
+# `set -a; source ../.env; source .env; set +a` с абсолютным DUCKDB_PATH.
 
 olist_dbt:
-  target: "{{ env_var('DBT_TARGET', 'duck') }}"
+  target: "{{ env_var('DBT_TARGET') }}"
   outputs:
     duck:
       type: duckdb
-      path: "{{ env_var('DUCKDB_PATH', '../data/olist.duckdb') }}"
+      path: "{{ env_var('DUCKDB_PATH') }}"
       schema: main
+      threads: 4
+    # ClickHouse — пока не используется; включается DBT_TARGET=ch. Переменные — в dbt/.env (см. dbt/.env.template).
+    ch:
+      type: clickhouse
+      host: "{{ env_var('CH_HOST') }}"
+      port: "{{ env_var('CH_PORT') | int }}"
+      user: "{{ env_var('CH_USER') }}"
+      password: "{{ env_var('CH_PASSWORD') }}"
+      schema: "{{ env_var('CH_RAW_DB') }}"
+      secure: "{{ env_var('CH_SECURE') | as_bool }}"
       threads: 4
