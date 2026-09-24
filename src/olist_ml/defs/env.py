@@ -20,3 +20,5 @@ if not _duckdb.is_absolute():
     os.environ["DUCKDB_PATH"] = str(PROJECT_ROOT / _duckdb)
 
 DUCKDB_PATH = Path(os.environ["DUCKDB_PATH"])
+# DuckDB создаёт файл БД, но не родительский каталог.
+DUCKDB_PATH.parent.mkdir(parents=True, exist_ok=True)
