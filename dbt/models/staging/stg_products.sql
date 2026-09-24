@@ -10,7 +10,7 @@
 #}
 
 with products as (
-    select * from {{ source('olist_raw', 'products') }}
+    select * from {{ raw_table('products') }}
 ),
 
 translation as (

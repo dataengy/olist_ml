@@ -6,7 +6,7 @@
 #}
 
 with source as (
-    select * from {{ source('olist_raw', 'order_payments') }}
+    select * from {{ raw_table('order_payments') }}
 )
 
 select

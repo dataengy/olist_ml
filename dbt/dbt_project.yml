@@ -58,3 +58,8 @@ tests:
   olist_dbt:
     +store_failures: true
     +schema: test_failures
+    # Тесты источников (models/sources/sources.yml) — только на ch. На duck сырой слой —
+    # seeds, staging читает их через ref() (macros/raw_table.sql), а тесты источника
+    # не зависят от seed и на пустой БД стартовали бы раньше, чем seed создаст таблицу.
+    sources:
+      +enabled: "{{ target.type != 'duckdb' }}"

@@ -22,4 +22,4 @@ select
 
     {{ price_bucket('price') }} as price_segment
 
-from {{ source('olist_raw', 'order_items') }}
+from {{ raw_table('order_items') }}

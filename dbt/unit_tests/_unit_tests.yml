@@ -4,6 +4,9 @@ version: 2
 # в хранилище. Тем они и ценны: сюда можно подать ровно те пограничные случаи,
 # которых в реальном датасете единицы или нет вовсе, — и убедиться, что
 # правило работает, ещё до загрузки данных.
+#
+# Входы staging — ref('<seed>'): на таргете duck сырой слой — seeds, staging читает
+# их через macros/raw_table.sql (на ch там был бы source('olist_raw', ...)).
 
 unit_tests:
 
@@ -15,7 +18,7 @@ unit_tests:
       доставка в обещанный день, но позже полуночи, — это не опоздание.
     model: stg_orders
     given:
-      - input: source('olist_raw', 'orders')
+      - input: ref('orders')
         rows:
           # доставлен на день позже обещанного → просрочка
           - {order_id: 'late', customer_id: 'c1', order_status: 'delivered',
@@ -58,7 +61,7 @@ unit_tests:
       (30, 100, 300): классическая ошибка «< против <=» иначе живёт незамеченной.
     model: stg_order_items
     given:
-      - input: source('olist_raw', 'order_items')
+      - input: ref('order_items')
         rows:
           - {order_id: 'o1', order_item_id: 1, product_id: 'p', seller_id: 's',
              shipping_limit_date: '2018-01-01 00:00:00', price: 29.99, freight_value: 0}
@@ -82,7 +85,7 @@ unit_tests:
       с заказами размножит строки и сместит все метрики по отзывам.
     model: stg_order_reviews
     given:
-      - input: source('olist_raw', 'order_reviews')
+      - input: ref('order_reviews')
         rows:
           - {review_id: 'r_old', order_id: 'o1', review_score: 1,
              review_comment_title: null, review_comment_message: null,
@@ -108,7 +111,7 @@ unit_tests:
       и защиту nullif от подстановки пустой строки при LEFT JOIN в ClickHouse.
     model: stg_products
     given:
-      - input: source('olist_raw', 'products')
+      - input: ref('products')
         rows:
           - {product_id: 'p_ok', product_category_name: 'beleza_saude'}
           - {product_id: 'p_null', product_category_name: null}
@@ -135,7 +138,7 @@ unit_tests:
       максимальном размахе страны около 4 400 км.
     model: stg_geolocation
     given:
-      - input: source('olist_raw', 'geolocation')
+      - input: ref('geolocation')
         rows:
           # Сан-Паулу: две точки одного префикса → центроид между ними
           - {geolocation_zip_code_prefix: 1001, geolocation_lat: -23.5,

@@ -14,4 +14,4 @@ select
     customer_city,
     customer_state
 
-from {{ source('olist_raw', 'customers') }}
+from {{ raw_table('customers') }}
