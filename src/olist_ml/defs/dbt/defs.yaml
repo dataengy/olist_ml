@@ -33,11 +33,13 @@ attributes:
     # Итог: seed → "orders", источник → "olist_raw/orders" ('/' в ключе = несколько сегментов пути).
     key: "{{ node.source_name ~ '/' ~ node.name if node.resource_type == 'source' else node.name }}"
     # Группа ассета в UI:
+    #   модели пакета dbt_project_evaluator (проверки самого dbt-проекта) —
+    #   своя группа "dbt_project_evaluator", не смешиваются с витринами;
     #   source → "sources", seed → "seeds";
     #   модели → вторая часть fqn, т.е. папка в models/ (staging, intermediate, marts),
     #   например fqn = [olist_dbt, marts, mart_order_features] → "marts";
     #   модель прямо в корне models/ (fqn из двух частей) → "dbt".
-    group_name: "{{ 'sources' if node.resource_type == 'source' else ('seeds' if node.resource_type == 'seed' else (node.fqn[1] if node.fqn | length > 2 else 'dbt')) }}"
+    group_name: "{{ 'dbt_project_evaluator' if node.package_name == 'dbt_project_evaluator' else ('sources' if node.resource_type == 'source' else ('seeds' if node.resource_type == 'seed' else (node.fqn[1] if node.fqn | length > 2 else 'dbt'))) }}"
     # Описание в UI — из description в yml-схемах dbt; если его нет, подставляется заглушка.
     description: "{{ node.description or 'dbt-модель ' ~ node.name }}"
 
