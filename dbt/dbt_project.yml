@@ -15,7 +15,7 @@ analysis-paths: ["analyses"]
 clean-targets: ["target", "dbt_packages", "logs"]
 
 vars:
-  raw_database: "{{ env_var('CH_RAW_DB', 'olist_raw') }}"
+  raw_database: "{{ env_var('CH_RAW_DB') }}"
   late_delivery_grace_days: 0
   large_order_threshold: 200
   customer_high_value_threshold: 500

@@ -1,0 +1,51 @@
+# Компонент Dagster, превращающий dbt-проект ./dbt в ассеты: каждая модель, seed и snapshot —
+# отдельный ассет, dbt-тесты — asset checks, источники (sources) — внешние ассеты-зависимости.
+# Подхватывается автоматически: load_from_defs_folder (definitions.py) обходит папку defs/.
+type: dagster_dbt.DbtProjectComponent
+
+## Прежняя минимальная форма (только путь к проекту) — оставлена для сравнения.
+#attributes:
+#  project: '{{ context.project_root }}/dbt'
+
+attributes:
+  # Где лежит dbt-проект и как его запускать. context.project_root — корень Python-проекта
+  # (каталог с pyproject.toml), поэтому пути не зависят от cwd, из которого запущен dg.
+  project:
+    # Каталог с dbt_project.yml.
+    project_dir: "{{ context.project_root }}/dbt"
+    # Каталог с profiles.yml. Профиль берёт все значения из env (DBT_TARGET, DUCKDB_PATH, …),
+    # которые к этому моменту уже загружены из .env-файлов модулем defs/env.py.
+    profiles_dir: "{{ context.project_root }}/dbt"
+    # Куда dbt пишет manifest.json и прочие артефакты. Относительный путь считается от
+    # project_dir, т.е. это dbt/target — то же, что закомментированный абсолютный вариант ниже.
+    #    target_path: "{{ context.project_root }}/dbt/target"
+    target_path: target
+  # Команда dbt при материализации: build = seed + run + test (+ snapshot) в порядке графа,
+  # поэтому seeds загружаются раньше моделей, а тесты выполняются сразу после своих моделей.
+  cli_args: [build]
+
+  # Как dbt-узлы превращаются в ассеты Dagster. Внутри шаблонов доступен node — узел
+  # из manifest.json (name, resource_type, source_name, fqn, description, …).
+  translation:
+    # Ключ ассета. Для моделей и seeds — просто имя узла (orders, stg_orders, mart_order_features);
+    # на этот ключ ссылается ml.py (deps=[AssetKey("mart_order_features")]).
+    # source и seed с одинаковым именем (orders, …) дали бы дубль ключа — источникам префикс source_name.
+    # Итог: seed → "orders", источник → "olist_raw/orders" ('/' в ключе = несколько сегментов пути).
+    key: "{{ node.source_name ~ '/' ~ node.name if node.resource_type == 'source' else node.name }}"
+    # Группа ассета в UI:
+    #   source → "sources", seed → "seeds";
+    #   модели → вторая часть fqn, т.е. папка в models/ (staging, intermediate, marts),
+    #   например fqn = [olist_dbt, marts, mart_order_features] → "marts";
+    #   модель прямо в корне models/ (fqn из двух частей) → "dbt".
+    group_name: "{{ 'sources' if node.resource_type == 'source' else ('seeds' if node.resource_type == 'seed' else (node.fqn[1] if node.fqn | length > 2 else 'dbt')) }}"
+    # Описание в UI — из description в yml-схемах dbt; если его нет, подставляется заглушка.
+    description: "{{ node.description or 'dbt-модель ' ~ node.name }}"
+
+  translation_settings:
+    # Не прикреплять к ассетам ссылки на исходные .sql-файлы (code references в UI).
+    enable_code_references: false
+
+  # В dev-режиме (dg dev / dg list defs) компонент сам готовит dbt-проект при загрузке кода:
+  # выполняет dbt parse и строит manifest.json, поэтому отдельный `dbt parse` перед запуском не нужен.
+  # Вне dev manifest должен быть собран заранее (например, в CI).
+  prepare_if_dev: true

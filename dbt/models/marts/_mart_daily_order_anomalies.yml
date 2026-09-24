@@ -1,0 +1,39 @@
+version: 2
+
+models:
+  - name: mart_daily_order_anomalies
+    description: >
+      Python-модель (pandas): число заказов по дням, скользящие среднее и σ за предыдущие
+      rolling_window_days дней, z-score и флаг аномалии (|z| ≥ anomaly_z_threshold).
+      Пропущенные дни дозаполнены нулями.
+    config:
+      # Параметры читает сама модель через dbt.config.get(...); дефолтов в коде нет.
+      rolling_window_days: 7
+      anomaly_z_threshold: 3
+    columns:
+      - name: order_date
+        description: Календарный день (непрерывный ряд без пропусков).
+        tests: [not_null, unique]
+      - name: orders_cnt
+        description: Заказов, оформленных в этот день.
+        tests: [not_null]
+      - name: canceled_cnt
+        description: Из них отменённых / недоступных.
+      - name: rolling_mean
+        description: Среднее orders_cnt за предыдущие rolling_window_days дней (NULL в начале ряда).
+      - name: rolling_std
+        description: Стандартное отклонение за то же окно.
+      - name: z_score
+        description: (orders_cnt − rolling_mean) / rolling_std; NULL, если σ неизвестна или 0.
+      - name: is_anomaly
+        description: 1 — |z_score| ≥ anomaly_z_threshold.
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+              quote: false
+      - name: anomaly_direction
+        description: spike — всплеск, drop — провал; NULL для обычных дней.
+        tests:
+          - accepted_values:
+              values: [spike, drop]
