@@ -6,4 +6,4 @@ select
     seller_city,
     seller_state
 
-from {{ source('olist_raw', 'sellers') }}
+from {{ source('olist_raw', 'source_sellers') }}

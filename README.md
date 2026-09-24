@@ -44,6 +44,14 @@ pip install -e ".[dev]"
 
 ### Running Dagster
 
+Install the dbt adapter and Dagster integration with the project dependencies,
+then fetch dbt package dependencies:
+
+```bash
+uv sync
+uv run dbt deps --project-dir dbt --profiles-dir dbt
+```
+
 Start the Dagster UI web server:
 
 ```bash
@@ -51,6 +59,13 @@ dg dev
 ```
 
 Open http://localhost:3000 in your browser to see the project.
+
+The dbt project is loaded from `dbt/` through a Dagster YAML component. Its
+source definitions use `source_*` logical names and keep the original database
+table names through `identifier`, so source and seed asset keys stay distinct.
+Materialize the dbt assets first; the `training_dataset` asset then reads `marts.mart_order_features`
+from the same DuckDB file configured by `DUCKDB_PATH` in the root `.env` file
+(defaults to `data/olist.duckdb`; see `.env.example`).
 
 ## Learn more
 

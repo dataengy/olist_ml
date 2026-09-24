@@ -46,7 +46,7 @@ models:
 seeds:
   olist_dbt:
     +schema: seeds
-    # Snapshot raw-таблиц Olist (ADR-03): схема raw, ключи ассетов raw/<table> — см. defs/ingest/defs.yaml.
+    # Snapshot raw-таблиц Olist (ADR-03): физические таблицы находятся в схеме raw.
     # Типы колонок — вывод dbt seed (как read_csv_auto в каноне); касты в staging там, где они есть.
     raw:
       +schema: raw

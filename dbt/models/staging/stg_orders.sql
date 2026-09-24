@@ -8,7 +8,7 @@
 #}
 
 with source as (
-    select * from {{ source('olist_raw', 'orders') }}
+    select * from {{ source('olist_raw', 'source_orders') }}
 
     {% if var('start_date') and var('end_date') %}
         where order_purchase_timestamp >= cast('{{ var("start_date") }}' as {{ dbt.type_timestamp() }})

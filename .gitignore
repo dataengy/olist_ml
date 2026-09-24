@@ -1,6 +1,8 @@
 .dagster_home
 .dg
 .idea
+.DS_Store
+*.duckdb
 data/mart_order_features.parquet
 
 # Byte-compiled / optimized / DLL files
